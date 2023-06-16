@@ -1,0 +1,193 @@
+---
+output: 
+  ProbStatTemplate::probstatbeamer:
+    keep_tex: TRUE
+    latex_engine: pdflatex 
+    dev: cairo_pdf
+    slide_level: 3
+    toc: false
+    citation_package: natbib
+link-citations: yes
+linkcolor: blue
+urlcolor: blue
+#toc-title: Summary
+bibliography: bib.bib
+biblio-style: apsr
+title: "Trimming the Mean of Data with Long Right Tails: The Bias-Variance Tradeoff"
+author: "Xiaoya Wang, Bertrand Sodjahin, and Gradon Nicholls"
+institute: "June 19, 2023"
+fontsize: 10pt
+make149: TRUE
+numbersections: TRUE
+#header-includes:
+#  - \renewcommand{\th}{^{\text{th}}}
+---
+
+```{r setup, include=FALSE, cache=F, message=F, warning=F, results="hide"}
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(fig.path='figs/')
+knitr::opts_chunk$set(cache.path='cache/')
+
+knitr::opts_chunk$set(
+                  fig.process = function(x) {
+                      x2 = sub('-\\d+([.][a-z]+)$', '\\1', x)
+                      if (file.rename(x, x2)) x2 else x
+                      }
+                  )
+```
+
+# Motivation
+
+### Motivation
+
+```{r, echo=FALSE, out.height="60%"}
+set.seed(20230128)
+Data = c(rweibull(950,shape=0.9,scale=1),runif(50,min=6,max=8))
+hist(Data,main="Right-Tailed Data with Outliers",
+     xlim=c(0,8),breaks=seq(from=0,to=9.5,by=0.5),
+     freq=F,ylim=c(0,0.9))
+```
+
+- Goal: Compute sample average.
+- Challenge: Are outliers "true" outliers or not?
+- Even if true outliers, sample average may have large variance.
+
+
+### Trimming the Mean
+
+Let $Y_i \iidas{F}{\cdot}$. The sample mean is
+
+$$
+\hat\mu_0 = \frac{\sum\limits_{i=1}^n Y_i}{n}.
+$$
+
+To reduce the influence of outliers in the right tail, could use
+trimmed mean: remove the top $100p\%$ of observations:
+
+$$
+\hat\mu_p = \frac{\sum\limits_{i=1}^n I(Y_i \leq Y_{(1-p)}) Y_i }{\sum\limits_{i=1}^n I(Y_i \leq Y_{(1-p)})}
+$$
+
+where $Y_{(1-p)}$ is the $1-p\th$ quantile from the sample data.
+
+
+### Example: 5\% Trimming
+
+```{r, echo=FALSE}
+c1 = rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue")
+c2 = rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink")
+
+set.seed(20230128)
+Data = c(rweibull(950,shape=0.9,scale=1),runif(50,min=6,max=8))
+p = 0.05
+q = quantile(Data,probs=1-p)
+Data_trim = Data[Data <= q]
+hist(Data,main="Right-Tailed Data with Outliers: 5% Trimming",freq=F,
+     xlim=c(0,8),ylim=c(0,0.9),col=c1,breaks=seq(from=0,to=9.5,by=0.5))
+hist(Data_trim,freq=F,ylim=c(0,0.9),
+     xlim=c(0,8), add=TRUE, col=c2,breaks=seq(from=0,to=9.5,by=0.5))
+```
+
+
+### Bias-Variance Tradeoff
+
+- Is there any value to trimming if there are no "true" outliers?
+- Trimming reduces large values $\to$ decrease in variance, increase in bias.
+- Overall, may observe reduction in MSE:
+
+$$
+\text{MSE} = \text{Bias}^2 + \text{Variance}
+$$
+
+\textbf{Research Question:} How does trimming affect bias, variance, MSE of estimator if there are no outliers?
+
+\textbf{Assumption:} We assume underlying data generated from a Weibull random variable.
+
+
+
+# Weibull
+
+
+### The Weibull Distribution \small e.g. \cite{bain1992introduction}
+
+$X \distas{Wei}{\theta,\beta}$:
+
+$$
+f(x; \,\theta, \beta) = \frac{\beta}{\theta} \left(\frac{x}{\theta}\right)^{\beta-1} e^{-(x / \theta)^\beta}
+$$
+
+- $\theta$: scale parameter--i.e. $X \distas{Wei}{\theta, \beta} \implies \frac{X}{\theta} \distas{Wei}{1,\beta}$
+    - Interested in relative efficiency--WLOG assume $\theta = 1$
+- $\beta$: shape parameter
+    - $\beta = 1$: exponential distribution
+    - $\beta > 1$: polynomial times exponential
+    - $\beta < 1$: inverse polynomial times exponential -- asymptote at 0
+
+$$
+\E{X} = \theta \Gamma(1 + 1/\beta)
+$$
+
+$$
+\Var{X} = \theta^2 \left( \Gamma(1 + 2/\beta) - \Gamma^2(1 + 1/\beta) \right)
+$$
+
+
+### Shape of the Weibull
+
+```{r, echo=FALSE, out.height="70%"}
+curve(exp(-x),from=0,to=4,col="Blue",ylab="density")
+curve(2*x*exp(-x^2),from=0,to=4,add=T,col="Red")
+curve(0.5*(x^(-0.5))*exp(-x^0.5),from=0,to=4,add=T,col="Purple")
+legend(3,0.6,legend=c("beta=1","beta=2","beta=0.5"),col=c("Blue","Red","Purple"),lty=c(1,1,1))
+```
+
+We will consider only values $\beta \in (0,1)$.
+
+### Maximum Likelihood Estimation of the Mean
+
+\begin{itemize}
+\setlength\itemsep{0.5cm}
+\item Assume $Y_i \iidas{Wei}{\theta,\beta}$. Let $\mu = \E{Y_i} = \theta\Gamma(1 + 1/\beta)$.
+\item $\hat\mu_{\text{MLE}} = \hat\theta_{\text{MLE}} \Gamma(1 + 1 / \hat\beta_{\text{MLE}})$ by invariance property.
+\item $\hat\theta_{\text{MLE}},\hat\beta_{\text{MLE}}$ have no closed form, rely on numerical methods
+\item For large $n$, $\Var{\hat\mu_\text{MLE}}$ achieves Cramer-Rao lower bound, and so can be used as "gold standard" baseline.
+\item For small $n$, less certain.
+\end{itemize}
+    
+# Simulation 
+    
+### Simulation
+
+Parameters:
+
+- $\beta \in (0,1)$
+- $n \in \{20,200,2000\}$
+- $p \in \{0.01, 0.025, 0.05, 0.1\}$
+
+Simulation:
+
+- for $s = 1,\dots,S$
+    - gen $Y_i^s \iidas{Wei}{1,\beta}$, $i = 1, \cdots, n$
+    - estimate $\hat\mu_0^s$, $\hat\mu_p^s$, $\hat\mu_{\text{MLE}}^s$
+
+Estimate:
+
+- Bias: $\frac{\sum_s \hat\mu^s}{S} - \Gamma(1 + 1/\beta)$
+- Variance: $\frac{\sum_s \left(\hat\mu^s - (1/n)\sum_s \hat\mu^s\right)^2}{S-1}$
+- MSE: $\text{Bias}^2 + \text{Var}$
+
+### (Preliminary?) Results
+
+- ......
+
+
+### Conclusions
+
+- ......
+
+
+
+
+
+
+
