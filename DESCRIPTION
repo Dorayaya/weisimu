@@ -1,0 +1,9 @@
+Package: weisimu
+Type: Package
+Title: Simulation for Weibull distributions with trimmed means
+Version: 1.0.0
+Author: Gradon Nicholls, Xiaoya Wang, Bertrand Sodjahin
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: A R package for simulation for a Weibull distribution about the trimmed mean estimation.
+
+Depends: R( >= 3.0.0)
