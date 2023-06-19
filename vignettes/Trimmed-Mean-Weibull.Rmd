@@ -1,0 +1,141 @@
+---
+title: "weisimu: Using Simulations to Assess the Performance of the Truncated Mean of a Sample Generated from a Weibull Distribution"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Trimmed-Mean-Weibull}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Pre-requisites
+
+Install the package if needed and load it:
+
+```{r loadpackage}
+if (!require("devtools")) install.packages("devtools")
+if (!require("weisimu")) devtools::install_github("Dorayaya/weisimu")
+library(weisimu)
+```
+
+# Trimming the mean
+
+We compare sample mean to trimmed mean from above. (GIVE FORMULAS).
+For sample mean, know that it is exactly unbiased with variance (GIVE FORMULA).
+So only need to simulate trimmed mean.
+
+The base R `mean` function has a trim option, but trims tail above and below.
+Does not allow to trim above only.
+We add this functionality to the `mean` function as below:
+
+```{r}
+data = 1:100
+mean(data,trim=0.05) # trims 2.5% above and 2.5% below
+mean(data,trim=0.05,trim.upper=TRUE) # trims 5% above
+```
+
+# The Weibull Distribution
+
+GIVE FORMULAS ETC. MAYBE SHOW DENSITY PLOT FROM SLIDES.
+
+
+# Simulation Function
+
+Here we simulate for some values of the parameters. The function `simtrim` spits out mean, bias, variance,
+and MSE of sample mean and trimmed mean. As noted above, sample mean is always
+unbiased. Variance in this case is 1, so MSE is 1. On the other hand,
+trimmed mean trimed at 5\% introduces bias of about $-0.66$ but reduces
+variance to about $0.4$. Thus overall MSE is about $0.85$, or 15\% smaller
+than the unbiased gold standard.
+
+```{r}
+simtrim(n=20, shape=0.5, scale=1, p=0.05, S=10000)
+```
+
+
+# Simulating for ranges of values
+
+We can run simulations for many values of a parameter using the `simtrim_by`
+function. It takes the same arguments, but one is given as a vector.
+It then runs S simulations for each value of the vector and returns the
+results in a matrix. By default, the function will also plot the MSE of the
+trimmed and untrimmed means, but you can turn this off with the option `plot=FALSE`.
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
+                    S=1000,plot=FALSE)
+output[,1:5]
+```
+
+The default plot:
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
+                    S=1000)
+```
+
+
+We can also adjust the plot settings, including using syntax from the base `plot` function:
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
+                    S=1000, leg.pos="bottomleft",
+                    lty=c(1,2),lwd=c(2,3),col=c("purple","green"),
+                    main="An Interesting Title")
+```
+
+## Adjusting shape param
+
+As $\beta \to 0$ the mean and variance of weibull go to $\infty$.
+We thus see that as $\beta \to 0$, the trimmed mean becomes more and more useful:
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
+                    S=1000,
+                    leg.pos="topright",col=c("red","blue"))
+```
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.4,scale=1,p=0.05,
+                    S=1000,
+                    leg.pos="topright",col=c("red","blue"))
+```
+
+
+```{r}
+output = simtrim_by(n=seq(20,100,1),shape=0.3,scale=1,p=0.05,
+                    S=1000,
+                    leg.pos="topright",col=c("red","blue"))
+```
+
+```{r}
+output = simtrim_by(n=seq(20,500,10),shape=0.2,scale=1,p=0.05,
+                    S=1000,
+                    leg.pos="topright",col=c("red","blue"))
+```
+
+
+
+# Adjusting Trimming Proportion
+
+We see that for a sample size of 300 and $\beta = 0.2$,
+MSE favors only a little trimming--that is, only the largest observation.
+Once the trimming proportion is around 0.05 or greater, the sample mean
+becomes better.
+
+```{r}
+output = simtrim_by(n=300,shape=0.2,scale=1,p=seq(0.005,0.15,0.005),
+                    S=2000,
+                    leg.pos="bottomright",col=c("red","blue"))
+```
+
+
+
+
+
