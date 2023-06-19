@@ -43,9 +43,11 @@ knitr::opts_chunk$set(
 ```{r, echo=FALSE, out.height="60%"}
 set.seed(20230128)
 Data = c(rweibull(950,shape=0.9,scale=1),runif(50,min=6,max=8))
+par(mar=c(6, 5, 4, 2) + 0.1)
 hist(Data,main="Right-Tailed Data with Outliers",
      xlim=c(0,8),breaks=seq(from=0,to=9.5,by=0.5),
-     freq=F,ylim=c(0,0.9))
+     freq=F,ylim=c(0,0.9),cex.main=2.5,cex.lab=2.5,cex.axis=2.5)
+par(mar=c(5, 4, 4, 2) + 0.1)
 ```
 
 - Goal: Compute sample average.
@@ -82,10 +84,13 @@ Data = c(rweibull(950,shape=0.9,scale=1),runif(50,min=6,max=8))
 p = 0.05
 q = quantile(Data,probs=1-p)
 Data_trim = Data[Data <= q]
+par(mar=c(6, 5, 4, 2) + 0.1)
 hist(Data,main="Right-Tailed Data with Outliers: 5% Trimming",freq=F,
-     xlim=c(0,8),ylim=c(0,0.9),col=c1,breaks=seq(from=0,to=9.5,by=0.5))
+     xlim=c(0,8),ylim=c(0,0.9),col=c1,breaks=seq(from=0,to=9.5,by=0.5),
+     cex.main=2,cex.lab=2,cex.axis=2)
 hist(Data_trim,freq=F,ylim=c(0,0.9),
      xlim=c(0,8), add=TRUE, col=c2,breaks=seq(from=0,to=9.5,by=0.5))
+par(mar=c(6, 4, 4, 2) + 0.1)
 ```
 
 
@@ -135,10 +140,14 @@ $$
 ### Shape of the Weibull
 
 ```{r, echo=FALSE, out.height="70%"}
-curve(exp(-x),from=0,to=4,col="Blue",ylab="density")
-curve(2*x*exp(-x^2),from=0,to=4,add=T,col="Red")
-curve(0.5*(x^(-0.5))*exp(-x^0.5),from=0,to=4,add=T,col="Purple")
-legend(3,0.6,legend=c("beta=1","beta=2","beta=0.5"),col=c("Blue","Red","Purple"),lty=c(1,1,1))
+par(mar=c(6, 5, 4, 2) + 0.1)
+curve(exp(-x),from=0,to=4,col="Blue",ylab="density"
+      ,cex.lab=2.5,cex.axis=2.5,lwd=2)
+curve(2*x*exp(-x^2),from=0,to=4,add=T,col="Red",lwd=2)
+curve(0.5*(x^(-0.5))*exp(-x^0.5),from=0,to=4,add=T,col="Purple",lwd=2)
+legend(2.5,0.8,legend=c("beta=1","beta=2","beta=0.5"),col=c("Blue","Red","Purple"),lty=c(1,1,1),
+       cex=2,lwd=c(2,2,2))
+par(mar=c(6, 4, 4, 2) + 0.1)
 ```
 
 We will consider only values $\beta \in (0,1)$.
