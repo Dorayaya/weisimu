@@ -1,10 +1,13 @@
 ---
-title: "weisimu: Using Simulations to Assess the Performance of the Truncated Mean of a Sample Generated from a Weibull Distribution"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Trimmed-Mean-Weibull}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+title: 'weisimu: Using Simulations to Assess the Performance of the Truncated Mean
+  of a Sample Generated from a Weibull Distribution'
+author: "Xiaoya Wang, Bertrand Sodjahin, and Gradon Nicholls"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  rmarkdown::html_vignette: default
+vignette: "%\\VignetteIndexEntry{Trimmed-Mean-Weibull} %\\VignetteEngine{knitr::rmarkdown}
+  %\\VignetteEncoding{UTF-8}\n"
 ---
 
 ```{r, include = FALSE}
@@ -14,6 +17,32 @@ knitr::opts_chunk$set(
 )
 ```
 
+$\textbf{weisimu}$ stands for \textbf{Wei}bull \textbf{simu}lation. The package allows to conduct a comparative simulation study of trimmed sample mean vs. untrimmed sample mean for the Weibull distribution. The current vignette includes help documentation for the usage of $\textbf{weisimu}$, along with some simulation illustration examples.
+
+# The Weibull Distribution
+
+$X \sim {Wei}({\theta,\beta})$: 
+
+$$ f(x; \,\theta, \beta) = \frac{\beta}{\theta} \left(\frac{x}{\theta}\right)^{\beta-1} e^{-(x / \theta)^\beta} $$
+
+\begin{itemize}
+  \item \(\theta\): scale parameter 
+  \item \(\beta\): shape parameter
+\end{itemize}
+$$~$$
+
+```{r echo=FALSE, out.width="100%", fig.align = 'center', fig.cap="Examples of Weibull distributions by shape and scale"}
+curve(dweibull(x, shape=2, scale=1),
+      from=0, to=5, col='blue', ylab = "density")#, main = expression('Weibull Distribution by shape and scale')) # 
+  
+curve(dweibull(x, shape=3, scale=2),
+      from=0, to=7, col='red', add=TRUE)
+  
+curve(dweibull(x, shape=4, scale=3), 
+      from=0, to=10, col='purple', add=TRUE)
+
+legend(3,0.75, c("shape=2, scale=1","shape=3, scale=2","shape=4, scale=3"),lty=c(7,7,7), col= c("blue", "red", "purple"), bty="n")
+```
 # Pre-requisites
 
 Install the package if needed and load it:
@@ -26,13 +55,28 @@ library(weisimu)
 
 # Trimming the mean
 
-We compare sample mean to trimmed mean from above. (GIVE FORMULAS).
-For sample mean, know that it is exactly unbiased with variance (GIVE FORMULA).
-So only need to simulate trimmed mean.
+We compare sample mean ($\hat \mu_0$) to trimmed sample mean ($\hat \mu_p$)  from above, i.e., from upper quantile. The expressions for the computation of $\hat \mu_0$ and $\hat \mu_p$ are respectively given according to the following formulas:
 
-The base R `mean` function has a trim option, but trims tail above and below.
-Does not allow to trim above only.
-We add this functionality to the `mean` function as below:
+\begin{equation} \label{equ1}
+\hat\mu_0 = \frac{\sum\limits_{i=1}^n X_i}{n},
+\end{equation}
+
+\begin{equation} \label{equ2}
+\hat\mu_p = \frac{\sum\limits_{i=1}^n I(X_i \leq X_{(1-p)}) X_i }{\sum\limits_{i=1}^n I(X_i \leq X_{(1-p)})},
+\end{equation}
+
+where 
+
+$X_i \overset {iid}{\sim} {F}({\cdot})$ and \(X_{(1-p)}\) is the \(1-p^{th}\) quantile from the sample data.
+
+For sample mean, it is exactly unbiased with variance given in Equ. \ref{equ3}. So, we only simulate trimmed mean.
+
+\begin{equation} \label{equ3}
+\frac{\theta^2}{n} \left [ \Gamma \left (1 + \frac{2}{\beta} \right ) - \left (\Gamma \left (1 + \frac{1}{\beta} \right ) \right ) ^2 \right ].
+\end{equation}
+
+The base R `mean` function has a trim option, but it trims both tails, above and below. It does not allow to trim above only. So, we add this functionality to the `mean` function with the parameter \texttt{trim.upper} as below:
+\newline
 
 ```{r}
 data = 1:100
@@ -40,19 +84,16 @@ mean(data,trim=0.05) # trims 2.5% above and 2.5% below
 mean(data,trim=0.05,trim.upper=TRUE) # trims 5% above
 ```
 
-# The Weibull Distribution
-
-GIVE FORMULAS ETC. MAYBE SHOW DENSITY PLOT FROM SLIDES.
-
-
+\newpage
 # Simulation Function
 
 Here we simulate for some values of the parameters. The function `simtrim` spits out mean, bias, variance,
 and MSE of sample mean and trimmed mean. As noted above, sample mean is always
 unbiased. Variance in this case is 1, so MSE is 1. On the other hand,
-trimmed mean trimed at 5\% introduces bias of about $-0.66$ but reduces
-variance to about $0.4$. Thus overall MSE is about $0.85$, or 15\% smaller
+trimmed mean at 5\% introduces bias of about $-0.66$ but reduces
+variance to $\sim$$0.4$. Thus overall MSE is about $0.85$, or 15\% smaller
 than the unbiased gold standard.
+\newline
 
 ```{r}
 simtrim(n=20, shape=0.5, scale=1, p=0.05, S=10000)
@@ -66,75 +107,81 @@ function. It takes the same arguments, but one is given as a vector.
 It then runs S simulations for each value of the vector and returns the
 results in a matrix. By default, the function will also plot the MSE of the
 trimmed and untrimmed means, but you can turn this off with the option `plot=FALSE`.
+\newline
 
-```{r}
+```{r fig.align = 'center', out.width="90%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
                     S=1000,plot=FALSE)
 output[,1:5]
 ```
 
+\newpage
 The default plot:
-
-```{r}
+\newline
+```{r fig.align = 'center', out.width="85%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
                     S=1000)
 ```
 
-
 We can also adjust the plot settings, including using syntax from the base `plot` function:
-
-```{r}
+\newline
+```{r fig.align = 'center', out.width="85%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
                     S=1000, leg.pos="bottomleft",
                     lty=c(1,2),lwd=c(2,3),col=c("purple","green"),
-                    main="An Interesting Title")
+                    main=expression("An Interesting Title"))
 ```
 
 ## Adjusting shape param
 
 As $\beta \to 0$ the mean and variance of weibull go to $\infty$.
 We thus see that as $\beta \to 0$, the trimmed mean becomes more and more useful:
+\newline
 
-```{r}
+```{r fig.align = 'center', out.width="76%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.5,scale=1,p=0.05,
                     S=1000,
-                    leg.pos="topright",col=c("red","blue"))
+                    leg.pos="topright",col=c("red","blue"),
+                    main=expression(beta == 0.5))
 ```
 
-```{r}
+```{r fig.align = 'center', out.width="76%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.4,scale=1,p=0.05,
                     S=1000,
-                    leg.pos="topright",col=c("red","blue"))
+                    leg.pos="topright",col=c("red","blue"),
+                    main=expression(beta == 0.4))
 ```
 
 
-```{r}
+```{r fig.align = 'center', out.width="85%"}
 output = simtrim_by(n=seq(20,100,1),shape=0.3,scale=1,p=0.05,
                     S=1000,
-                    leg.pos="topright",col=c("red","blue"))
+                    leg.pos="topright",col=c("red","blue"),
+                    main=expression(beta == 0.3))
 ```
 
-```{r}
+```{r fig.align = 'center', out.width="85%"}
 output = simtrim_by(n=seq(20,500,10),shape=0.2,scale=1,p=0.05,
                     S=1000,
-                    leg.pos="topright",col=c("red","blue"))
+                    leg.pos="topright",col=c("red","blue"),
+                    main=expression(beta == 0.2))
 ```
 
 
-
+\newpage
 # Adjusting Trimming Proportion
 
 We see that for a sample size of 300 and $\beta = 0.2$,
 MSE favors only a little trimming--that is, only the largest observation.
 Once the trimming proportion is around 0.05 or greater, the sample mean
 becomes better.
+\newline
 
 ```{r}
 output = simtrim_by(n=300,shape=0.2,scale=1,p=seq(0.005,0.15,0.005),
                     S=2000,
                     leg.pos="bottomright",col=c("red","blue"))
 ```
-
 
 
 
