@@ -35,12 +35,12 @@ test_simtrim <- function() {
   expect_error(simtrim(n = 100, shape = 2, scale = 1, p = 0.1, S = -100), "require S > 0")
   
   ## check some statistical properties
-  # Test case 5: check if S->\infty, does simulation error reduce?
+  # Test case 6: check if S->\infty, does simulation error reduce?
   sim_result <- simtrim(n = 1000, shape = 2, scale = 1, p = 0.1, S = 500)
   sim_result_large_S <- simtrim(n = 1000, shape = 2, scale = 1, p = 0.1, S = 10000)
   expect_true(sim_result_large_S$MSE_mu_p < sim_result$MSE_mu_p)
   
-  # Test case 6: for given values of shape and scale, check if the mean/var/MSE of \hat mu_0 match the theoretical values
+  # Test case 7: for given values of shape and scale, check if the mean/var/MSE of \hat mu_0 match the theoretical values
   sim_result_large_S <- simtrim(n = 2000, shape = 2, scale = 1, p = 0.1, S = 5000)
   shape <- 2
   scale <- 1
