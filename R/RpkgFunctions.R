@@ -13,14 +13,27 @@ mean = function(x, trim=0, na.rm=FALSE, trim.upper=FALSE, ...) {
 # n = sample size
 # shape = shape parameter of weibull
 # scale = scale parameter of weibull
-# p = trim top 100p% of distirbution for trimmed mean
+# p = trim top 100p% of distribution for trimmed mean
 # S = number of simulations to conduct
 simtrim = function(n, shape, scale, p, S) {
 
-  if (length(S) > 1) {
-    warning("S has length>1, using only first element")
-    S = S[1]
+  # all params must be numeric
+  if (!(is.numeric(c(n,shape,scale,p,S)))) {
+    stop("All parameters must be numeric")
   }
+
+  # all params must be length 1
+  if (   !(  (length(n)==1) & (length(shape)==1) & (length(scale)==1) & (length(p)==1) & (length(S)==1)  )   ) {
+    stop("all of (n, shape, scale, p, S) must be numeric of length=1")
+  }
+
+  # check params have valid values
+  n = floor(n)
+  S = floor(S)
+  if (!(n >= 2)) stop("require n >= 2")
+  if (!(shape > 0)) stop("require shape > 0")
+  if (!(scale > 0)) stop("require scale > 0")
+  if (!(S > 0)) stop("require S > 0")
 
   mu_p_sims = rep(NA,S)
   for (s in 1:S) {
@@ -49,6 +62,12 @@ simtrim = function(n, shape, scale, p, S) {
 simtrim_by = function(n, shape, scale, p, S,
                       plot=TRUE, lty=c(2,1), lwd=c(2,2), col=c("black","black"),
                       leg.pos="topright", ...) {
+
+  # all params must be numeric
+  if (!(is.numeric(c(n,shape,scale,p,S)))) {
+    stop("n, shape, scale, p, S must be numeric")
+  }
+
   # check how many params are >1 length
   if ( (length(n)>1) + (length(shape)>1) + (length(scale)>1) + (length(p)>1) > 1 ) {
     stop("only one of (n, shape, scale, p) may be vector of length>1")
@@ -56,11 +75,16 @@ simtrim_by = function(n, shape, scale, p, S,
   if ( (length(n)==1) & (length(shape)==1) & (length(scale)==1) & (length(p)==1) ) {
     stop("one of (n, shape, scale, p) must be vector of length>1")
   }
-  if (length(S) > 1) {
-    warning("S has length>1, using only first element")
-    S = S[1]
-  }
 
+  # check params have valid values
+  n = floor(n)
+  S = floor(S)
+  if (!(min(n) >= 2)) stop("require n >= 2")
+  if (!(min(shape) > 0)) stop("require shape > 0")
+  if (!(min(scale) > 0)) stop("require scale > 0")
+  if (!(S > 0)) stop("require S > 0")
+
+  # Whichever parameter is length>1 is interpreted as x-axis variable
   if (length(n) > 1) {
     allsims = sapply(X=n, FUN=simtrim, shape=shape, scale=scale, p=p, S=S)
     xlab = "n"
@@ -75,6 +99,7 @@ simtrim_by = function(n, shape, scale, p, S,
     xlab = "p"
   }
 
+  # if plot=TRUE (default) then plot the simulation results
   if (plot) {
     plot(x=get(xlab),
          y=as.numeric(allsims["MSE_mu_0",]),
