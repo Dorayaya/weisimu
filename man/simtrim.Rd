@@ -15,7 +15,7 @@ simtrim(n, shape, scale, p, S)
 
 \arguments{
   \item{n}{
-    The sample size (integer) for each simulation.
+    The sample size (integer greater than 1) for each simulation.
   }
 
   \item{shape}{
@@ -31,43 +31,50 @@ simtrim(n, shape, scale, p, S)
   }
 
   \item{S}{
-    The number of simulations (integer) to conduct.
+    The number of simulations (positive integer) to conduct.
   }
 }
 
 \details{
-The function conducts \code{S} simulations of a Weibull distribution with parameters \code{shape} and \code{scale}. For each simulation, it calculates the regular mean (\code{mu_0}), the trimmed mean (\code{mu_p}), and the mean estimated using maximum likelihood estimation (\code{mu_mle}). It also calculates various statistics such as bias, variance, and mean squared error (MSE) for each estimation method.
+The function calculates the the trimmed mean (\code{mu_p}) for \code{S} simulations. On each simulation, \code{n} observations are generated from a Weibull distribution with parameters \code{shape} and \code{scale}. The output is the mean, bias, variance, and MSE of the standard untrimmed sample mean (\code{mu_0}, computed using properties of the Weibull distribution) and the trimmed mean (\code{mu_p}, estimated based on the simulations).
 }
 
 \value{
 A list containing the following components:
 
-\item{true_mean}{
-  The true mean of the Weibull distribution.
+\item{mu_0}{
+  The mean of the untrimmed sample average (based on Weibull distribution)
 }
 
-\item{bias}{
-  A list of bias values for each estimation method:
-  \begin{itemize}
-    \item \code{mu_0}: Bias for the regular mean estimation.
-    \item \code{mu_p}: Bias for the trimmed mean estimation.
-    \item \code{mu_mle}: Bias for the mean estimation using maximum likelihood estimation.
-  \end{itemize}
+\item{bias_mu_0}{
+  The bias of the untrimmed sample average (always 0)
 }
 
-\item{vars}{
-  A list of variance values for each estimation method:
-  \begin{itemize}
-    \item \code{mu_0}: Variance for the regular mean estimation.
-    \item \code{mu_p}: Variance for the trimmed mean estimation.
-    \item \code{mu_mle}: Variance for the mean estimation using maximum likelihood estimation.
-  \end{itemize}
+\item{var_mu_0}{
+  The variance of the untrimmed sample average (based on Weibull distribution)
 }
 
-\item{MSE}{
-  A list of mean squared error (MSE) values for each estimation method:
-  \begin{itemize}
-    \item \code{mu_0}: MSE for the regular mean estimation.
-    \item \code{mu_p}: MSE for the trimmed mean estimation.
-    \item \code{mu_mle}: MSE for the mean estimation using maximum likelihood estimation.
-  \end
+\item{MSE_mu_0}{
+  The MSE of the untrimmed sample average (based on Weibull distribution)
+}
+
+
+\item{mu_p}{
+  The mean of the trimmed sample average (based on simulations)
+}
+
+\item{bias_mu_p}{
+  The bias of the trimmed sample average (based on simulations)
+}
+
+\item{var_mu_p}{
+  The variance of the trimmed sample average (based on simulations)
+}
+
+\item{MSE_mu_p}{
+  The MSE of the trimmed sample average (based on simulations)
+}
+
+
+
+}
